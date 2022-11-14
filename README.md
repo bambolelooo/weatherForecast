@@ -44,9 +44,9 @@ Weather forecast contains:
 
 ### Built With
 
-* CSS
+* CSS (Bootstrap)
 * HTML
-* Love
+* JavaScript
 
 
 <!-- CONTRIBUTING -->
