@@ -1,5 +1,6 @@
 "use strict";
 $(function () {
+    // localStorage.clear();
     // let weatherPads = querySelectorAll(".weather");
 
     // const coordinates = new Map();
@@ -7,9 +8,25 @@ $(function () {
 
     const cityDataMap =
         new Map(JSON.parse(localStorage.getItem("cityDataMap"))) || new Map();
-    const cities = [...cityDataMap.keys()];
-
+    let cities = [...cityDataMap.keys()];
     function fillNavbar() {
+        // console.log("filling navbar");
+        cities = [...cityDataMap.keys()];
+        $("#sidebar-nav").html(
+            `<form class="mx-2 my-2">
+        <div class="form-group">
+            <input
+                type="text"
+                class="form-control"
+                id="cities"
+            />
+        </div>
+        </form> <button
+        class="btn btn-outline-secondary m-2 search"
+        type="button">
+        Search city
+        </button>`
+        );
         for (const city of cities) {
             $("#sidebar-nav").append(`<button
                                     class="list-group-item border-end-0 d-inline-block cityBtn"
@@ -18,6 +35,15 @@ $(function () {
                                 ${city}
                                 </button>`);
         }
+
+        $(".search").click(function () {
+            const city = $("#cities").val();
+            fetchCity(city);
+        });
+        $(".cityBtn").click(function () {
+            const city = $(this).text().trim();
+            fetchCity(city);
+        });
     }
     fillNavbar();
 
@@ -27,16 +53,6 @@ $(function () {
     if (cities.length != 0) {
         fillDivs(cities[0]);
     }
-
-    $(".search").click(function () {
-        const city = $("#cities").val();
-        fetchCity(city);
-    });
-
-    $(".cityBtn").click(function () {
-        const city = $(this).text().trim();
-        fetchCity(city);
-    });
 
     function fetchCity(city) {
         const currDate = new Date();
@@ -48,13 +64,13 @@ $(function () {
                     3600000
             ) < 2
         ) {
-            console.log(
-                (cityDataMap.get(city).current.dt * 1000 - currDate.getTime()) /
-                    3600000
-            );
+            // console.log(
+            //     (cityDataMap.get(city).current.dt * 1000 - currDate.getTime()) /
+            //         3600000
+            // );
             fillDivs(city);
         } else if (cityDataMap.get(city)) {
-            console.log(cityDataMap.get(city));
+            // console.log(cityDataMap.get(city));
             fetch(
                 `https://api.openweathermap.org/data/2.5/forecast?lat=${
                     cityDataMap.get(city).lat
@@ -62,17 +78,19 @@ $(function () {
             )
                 .then((response) => response.json())
                 .then((data) => {
-                    console.log(data);
+                    // console.log(data);
                     parseWeather(data, city);
                     fillDivs(city);
                 });
+        } else if (city.length === 0) {
+            $("#cities").val("Empty input");
         } else {
             fetch(
                 `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`
             )
                 .then((response) => response.json())
                 .then((data) => {
-                    console.log(data);
+                    // console.log(data);
                     if (data.length === 0) {
                         $("#cities").val("Couldn't find");
                     } else {
@@ -81,6 +99,8 @@ $(function () {
                             lat: data[0].lat,
                             lon: data[0].lon,
                         });
+                        fillNavbar();
+
                         console.log(cityDataMap.get(cityName));
                         localStorage.setItem(
                             "cityDataMap",
@@ -99,11 +119,6 @@ $(function () {
                                 console.log(cityName);
                                 parseWeather(data, cityName);
                                 fillDivs(cityName);
-                                if (
-                                    ![...cityDataMap.keys()].includes(cityName)
-                                ) {
-                                    fillNavbar();
-                                }
                             });
                     }
                 });
@@ -111,12 +126,15 @@ $(function () {
     }
 
     function parseWeather(data, cityName) {
+        console.log(`needed`);
+        console.log(data);
         console.log(`parsing data for ${cityName}`);
-        let bestTime = 13 - data.city.timezone / 3600; // best time to present weather
+        let bestTime = Math.floor(13 - data.city.timezone / 3600); // best time to present weather
         while (bestTime % 3 !== 0) {
+            console.log(`besttime += 1`);
             bestTime += 1;
         }
-        bestTime = String(bestTime);
+        console.log(`bestTime ${bestTime}`);
         const weatherStats = {};
         let counter = 1;
         weatherStats.localHours = new Date(
@@ -124,9 +142,9 @@ $(function () {
         ).getUTCHours();
         weatherStats.current = data.list[0];
         for (const weather of data.list) {
-            if (data.list[0].dt_txt.slice(11, 13) === bestTime) {
+            if (Number(data.list[0].dt_txt.slice(11, 13)) === bestTime) {
                 // skip if current time is best
-            } else if (weather.dt_txt.slice(11, 13) === bestTime) {
+            } else if (Number(weather.dt_txt.slice(11, 13)) === bestTime) {
                 console.log("found best time");
                 weatherStats[`day${counter}`] = weather;
                 counter++;
