@@ -44,19 +44,19 @@ $(function () {
             const city = $(this).text().trim();
             fetchCity(city);
         });
+        $("#cities").autocomplete({
+            source: cities,
+        });
     }
     fillNavbar();
 
-    $("#cities").autocomplete({
-        source: cities,
-    });
     if (cities.length != 0) {
         fillDivs(cities[0]);
     }
 
     function fetchCity(city) {
         const currDate = new Date();
-        // if difference between current time and last stored data is less than 2h - dont fetch
+        // if difference between current time and last stored data is less than 2h - don't fetch
         if (
             cityDataMap.get(city) &&
             Math.abs(
@@ -101,7 +101,7 @@ $(function () {
                         });
                         fillNavbar();
 
-                        console.log(cityDataMap.get(cityName));
+                        // console.log(cityDataMap.get(cityName));
                         localStorage.setItem(
                             "cityDataMap",
                             JSON.stringify(Array.from(cityDataMap.entries()))
@@ -115,8 +115,8 @@ $(function () {
                         )
                             .then((response) => response.json())
                             .then((data) => {
-                                console.log(data);
-                                console.log(cityName);
+                                // console.log(data);
+                                // console.log(cityName);
                                 parseWeather(data, cityName);
                                 fillDivs(cityName);
                             });
@@ -126,15 +126,15 @@ $(function () {
     }
 
     function parseWeather(data, cityName) {
-        console.log(`needed`);
-        console.log(data);
-        console.log(`parsing data for ${cityName}`);
+        // console.log(`needed`);
+        // console.log(data);
+        // console.log(`parsing data for ${cityName}`);
         let bestTime = Math.floor(13 - data.city.timezone / 3600); // best time to present weather
         while (bestTime % 3 !== 0) {
-            console.log(`besttime += 1`);
+            // console.log(`besttime += 1`);
             bestTime += 1;
         }
-        console.log(`bestTime ${bestTime}`);
+        // console.log(`bestTime ${bestTime}`);
         const weatherStats = {};
         let counter = 1;
         weatherStats.localHours = new Date(
@@ -142,13 +142,19 @@ $(function () {
         ).getUTCHours();
         weatherStats.current = data.list[0];
         for (const weather of data.list) {
-            if (Number(data.list[0].dt_txt.slice(11, 13)) === bestTime) {
-                // skip if current time is best
+            // console.log(Number(weather.dt_txt.slice(11, 13)));
+            if (data.list[0].dt_txt.slice(11, 13) == bestTime) {
+                data.list[0].dt_txt = "skipped";
             } else if (Number(weather.dt_txt.slice(11, 13)) === bestTime) {
-                console.log("found best time");
+                // console.log("found best time");
                 weatherStats[`day${counter}`] = weather;
                 counter++;
             }
+        }
+        if (counter < 6) {
+            // correct acconrding to timezone
+            bestTime = bestTime - 3;
+            weatherStats[`day${counter}`] = data.list[39];
         }
 
         // genius way to make a deep copy of an object xD
@@ -162,7 +168,7 @@ $(function () {
             "cityDataMap",
             JSON.stringify(Array.from(cityDataMap.entries()))
         );
-        console.log(cityDataMap.get(cityName));
+        // console.log(cityDataMap.get(cityName));
     }
 
     function fillDivs(city) {
@@ -214,7 +220,7 @@ $(function () {
             } d-flex justify-content-between align-items-center p-3 my-3 overflow-hidden">
             ${data[`day${i}`].dt_txt.slice(0, 11)} <br>
             Temperature: ${dayTemp}°C<br>
-        Wind speed: ${data[`day${i}`].wind.speed} m/s<br>
+        Wind speed: ${Math.round(data[`day${i}`].wind.speed)} m/s<br>
         Humidity: ${data[`day${i}`].main.humidity}%
         <img src="./img/${
             dayMainWeather === "Rain"
