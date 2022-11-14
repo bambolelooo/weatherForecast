@@ -1,16 +1,15 @@
 "use strict";
 $(function () {
-    // localStorage.clear();
-    // let weatherPads = querySelectorAll(".weather");
-
-    // const coordinates = new Map();
+    //pls dont steal it :)
     let apiKey = "baec5973b080a8881020312f4acc7843";
 
+    //map of all cities and weather
     const cityDataMap =
         new Map(JSON.parse(localStorage.getItem("cityDataMap"))) || new Map();
     let cities = [...cityDataMap.keys()];
+
+    // updates navbar with sotred cities and adds listeners to them
     function fillNavbar() {
-        // console.log("filling navbar");
         cities = [...cityDataMap.keys()];
         $("#sidebar-nav").html(
             `<form class="mx-2 my-2">
@@ -50,10 +49,12 @@ $(function () {
     }
     fillNavbar();
 
+    //initial set with first searched cuty
     if (cities.length != 0) {
         fillDivs(cities[0]);
     }
 
+    // huge function to fetch city
     function fetchCity(city) {
         const currDate = new Date();
         // if difference between current time and last stored data is less than 2h - don't fetch
@@ -64,13 +65,10 @@ $(function () {
                     3600000
             ) < 2
         ) {
-            // console.log(
-            //     (cityDataMap.get(city).current.dt * 1000 - currDate.getTime()) /
-            //         3600000
-            // );
             fillDivs(city);
+
+            //if city weather data is outdated fetch new
         } else if (cityDataMap.get(city)) {
-            // console.log(cityDataMap.get(city));
             fetch(
                 `https://api.openweathermap.org/data/2.5/forecast?lat=${
                     cityDataMap.get(city).lat
@@ -84,13 +82,15 @@ $(function () {
                 });
         } else if (city.length === 0) {
             $("#cities").val("Empty input");
+
+            //if this is a new city lookup for it and fetch
         } else {
+            //fetch location
             fetch(
                 `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`
             )
                 .then((response) => response.json())
                 .then((data) => {
-                    // console.log(data);
                     if (data.length === 0) {
                         $("#cities").val("Couldn't find");
                     } else {
@@ -101,11 +101,11 @@ $(function () {
                         });
                         fillNavbar();
 
-                        // console.log(cityDataMap.get(cityName));
                         localStorage.setItem(
                             "cityDataMap",
                             JSON.stringify(Array.from(cityDataMap.entries()))
                         );
+                        // fetch weather
                         fetch(
                             `https://api.openweathermap.org/data/2.5/forecast?lat=${
                                 cityDataMap.get(cityName).lat
@@ -125,16 +125,12 @@ $(function () {
         }
     }
 
+    // filter unused weather data
     function parseWeather(data, cityName) {
-        // console.log(`needed`);
-        // console.log(data);
-        // console.log(`parsing data for ${cityName}`);
         let bestTime = Math.floor(13 - data.city.timezone / 3600); // best time to present weather
         while (bestTime % 3 !== 0) {
-            // console.log(`besttime += 1`);
             bestTime += 1;
         }
-        // console.log(`bestTime ${bestTime}`);
         const weatherStats = {};
         let counter = 1;
         weatherStats.localHours = new Date(
@@ -142,11 +138,9 @@ $(function () {
         ).getUTCHours();
         weatherStats.current = data.list[0];
         for (const weather of data.list) {
-            // console.log(Number(weather.dt_txt.slice(11, 13)));
             if (data.list[0].dt_txt.slice(11, 13) == bestTime) {
                 data.list[0].dt_txt = "skipped";
             } else if (Number(weather.dt_txt.slice(11, 13)) === bestTime) {
-                // console.log("found best time");
                 weatherStats[`day${counter}`] = weather;
                 counter++;
             }
@@ -164,13 +158,16 @@ $(function () {
             ...cityDataMap.get(cityName),
             ...weatherStatsClone,
         });
+
+        //set city in localstorage
         localStorage.setItem(
             "cityDataMap",
             JSON.stringify(Array.from(cityDataMap.entries()))
         );
-        // console.log(cityDataMap.get(cityName));
     }
 
+    //function to fill weather in divs
+    //very scary idk how it works but it works just fine
     function fillDivs(city) {
         $(".city").text(city);
         const data = cityDataMap.get(city);
