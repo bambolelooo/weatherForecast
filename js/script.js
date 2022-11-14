@@ -86,7 +86,7 @@ $(function () {
             $("#cities").val("Empty input");
         } else {
             fetch(
-                `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`
+                `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`
             )
                 .then((response) => response.json())
                 .then((data) => {
