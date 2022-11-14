@@ -187,7 +187,7 @@ $(function () {
         } d-flex justify-content-between align-items-center px-3 overflow-hidden text-center py-2">
         Today<br>
         Temperature: ${currentTemp}°C<br>
-        Wind speed: ${data.current.wind.speed} m/s<br>
+        Wind speed: ${Math.round(data.current.wind.speed)} m/s<br>
         Humidity: ${data.current.main.humidity}%
         <img src="./img/${
             currentMainWeather === "Rain"
