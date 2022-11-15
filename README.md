@@ -61,4 +61,4 @@ Please do not contribute
 
 Ilya - [@chelixchepyre](https://twitter.com/chelixchepyre) - 
 
-Project Link: https://github.com/bambolelooo/weatherForecast](https://github.com/bambolelooo/weatherForecast)
+Project Link: [https://github.com/bambolelooo/weatherForecast](https://github.com/bambolelooo/weatherForecast)
